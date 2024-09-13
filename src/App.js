@@ -4,6 +4,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
 import recipes from './recipes.json';
+import { styled } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
@@ -20,12 +21,28 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Noto Sans TC", "Roboto", "Helvetica", "Arial", sans-serif',
   },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+        },
+      },
+    },
+  },
 });
 
 // 自定義過濾選項，最多顯示5個
 const filterOptions = createFilterOptions({
   limit: 5,
 });
+
+// 使用 styled 函數創建自定義組件
+const CustomPaper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: 16,
+  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+}));
 
 function App() {
   const [dish, setDish] = useState('');
@@ -74,8 +91,18 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Container maxWidth="sm" sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+        <CustomPaper>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            gutterBottom 
+            align="center" 
+            sx={{ 
+              fontWeight: 'bold', 
+              color: 'primary.main',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+            }}
+          >
             食材清單生成器
           </Typography>
           <Grid container spacing={2} alignItems="center">
@@ -101,7 +128,13 @@ function App() {
                 variant="contained"
                 onClick={getIngredients}
                 disabled={loading}
-                sx={{ height: '56px' }} // 確保按鈕高度與輸入欄位一致
+                sx={{ 
+                  height: '56px',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    backgroundColor: 'secondary.main',
+                  },
+                }}
               >
                 {loading ? '載入中...' : '搜尋'}
               </Button>
@@ -167,7 +200,7 @@ function App() {
               </List>
             </Box>
           )}
-        </Paper>
+        </CustomPaper>
       </Container>
     </ThemeProvider>
   );
