@@ -9,6 +9,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { IconButton } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
+
+// 假設您在 theme.js 中導出了所有主題
+import { allThemes } from './theme';
 
 const theme = createTheme({
   palette: {
@@ -75,6 +79,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [randomDish, setRandomDish] = useState(null);
+  const [currentTheme, setCurrentTheme] = useState(lightTheme);
 
   const dishOptions = useMemo(() => Object.keys(recipes), []);
 
@@ -115,10 +120,16 @@ function App() {
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
+    setCurrentTheme(isDarkMode ? lightTheme : darkTheme);
+  };
+
+  const randomizeTheme = () => {
+    const randomTheme = allThemes[Math.floor(Math.random() * allThemes.length)];
+    setCurrentTheme(randomTheme);
   };
 
   return (
-    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+    <ThemeProvider theme={currentTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -131,18 +142,30 @@ function App() {
           <IconButton onClick={toggleTheme} color="inherit">
             {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
+          <IconButton onClick={randomizeTheme} color="inherit">
+            <ShuffleIcon />
+          </IconButton>
         </Box>
         <Container maxWidth="sm" sx={{ py: 4 }}>
           <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-              食材清單生成器
+            <Typography variant="h4" component="h1" gutterBottom align="left" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
+              食譜與食材清單生成器
+            </Typography>
+            <Typography variant="caption" component="h2" gutterBottom align="left" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 4 }}>
+              Made by Simon L
             </Typography>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={9}>
                 <Autocomplete
                   fullWidth
                   options={dishOptions}
-                  renderInput={(params) => <TextField {...params} label="輸入菜色名稱" variant="outlined" />}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="輸入菜色名稱"
+                      variant="outlined"
+                    />
+                  )}
                   value={dish}
                   onChange={(event, newValue) => {
                     setDish(newValue || '');
@@ -152,6 +175,12 @@ function App() {
                   }}
                   filterOptions={filterOptions}
                   freeSolo
+                  sx={{
+                    '& .MuiAutocomplete-popper': {
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                      borderRadius: '4px',
+                    },
+                  }}
                 />
               </Grid>
               <Grid item xs={3}>
@@ -172,7 +201,7 @@ function App() {
               color="secondary"
               onClick={getRandomDish}
               disabled={loading}
-              sx={{ mt: 2, mb: 3 }}
+              sx={{ mt: 2, mb: 3, height: '56px' }}
             >
               今天午餐吃什麼
             </Button>
@@ -189,25 +218,29 @@ function App() {
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>主要食材：</Typography>
-                <List dense>
+                <Grid container spacing={2}>
                   {(randomDish ? randomDish.食材 : ingredients.食材).map((ingredient, index) => (
-                    <ListItem key={index}>
-                      <ListItemText 
-                        primary={`${ingredient.名稱} - ${ingredient.份量}`} 
-                      />
-                    </ListItem>
+                    <Grid item xs={12} key={index}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, mr: 2 }}>{ingredient.名稱}</Typography>
+                        <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
+                        <Typography sx={{ flexShrink: 0, ml: 2 }}>{ingredient.份量}</Typography>
+                      </Box>
+                    </Grid>
                   ))}
-                </List>
+                </Grid>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>調味料：</Typography>
-                <List dense>
+                <Grid container spacing={2}>
                   {(randomDish ? randomDish.調味料 : ingredients.調味料).map((seasoning, index) => (
-                    <ListItem key={index}>
-                      <ListItemText 
-                        primary={`${seasoning.名稱} - ${seasoning.份量}`} 
-                      />
-                    </ListItem>
+                    <Grid item xs={12} key={index}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, mr: 2 }}>{seasoning.名稱}</Typography>
+                        <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
+                        <Typography sx={{ flexShrink: 0, ml: 2 }}>{seasoning.份量}</Typography>
+                      </Box>
+                    </Grid>
                   ))}
-                </List>
+                </Grid>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                   預估熱量：<span style={{ color: theme.palette.primary.main }}>
@@ -215,15 +248,17 @@ function App() {
                   </span> 卡路里
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2 }}>營養成分：</Typography>
-                <List dense>
+                <Grid container spacing={2}>
                   {Object.entries(randomDish ? randomDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
-                    <ListItem key={index}>
-                      <ListItemText 
-                        primary={`${nutrient}: ${value}`} 
-                      />
-                    </ListItem>
+                    <Grid item xs={12} key={index}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Typography sx={{ flexShrink: 0, mr: 2 }}>{nutrient}</Typography>
+                        <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
+                        <Typography sx={{ flexShrink: 0, ml: 2 }}>{value}</Typography>
+                      </Box>
+                    </Grid>
                   ))}
-                </List>
+                </Grid>
               </Box>
             )}
           </Paper>
