@@ -15,6 +15,7 @@ const sharedTheme = {
           borderRadius: 12,
           textTransform: 'none',
           boxShadow: 'none',
+          height: '56px',
           '&:hover': {
             boxShadow: 'none',
           },
@@ -54,6 +55,19 @@ const sharedTheme = {
           boxShadow: 'none',
           borderBottom: '1px solid',
           borderColor: 'divider',
+        },
+      },
+    },
+    MuiAutocomplete: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+          },
+        },
+        popper: {
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          borderRadius: 12,
         },
       },
     },

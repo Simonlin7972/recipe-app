@@ -1,18 +1,17 @@
 import React, { useState, useMemo } from 'react';
-import { Autocomplete, TextField, Button, Container, Typography, Box, CircularProgress, Paper, Divider, Grid } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid } from '@mui/material';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
 import recipes from './recipes.json';
-import { lightTheme, darkTheme } from './theme';
+import { lightTheme, darkTheme, allThemes } from './theme';
 import CssBaseline from '@mui/material/CssBaseline';
 import { IconButton } from '@mui/material';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
-
-// 假設您在 theme.js 中導出了所有主題
-import { allThemes } from './theme';
+import CustomButton from './components/CustomButton';
+import CustomInput from './components/CustomInput';
 
 // 創建一個自定義主題來覆蓋 Autocomplete 的樣式
 const theme = createTheme({
@@ -123,17 +122,8 @@ function App() {
             </Typography>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={9}>
-                <Autocomplete
-                  fullWidth
+                <CustomInput
                   options={dishOptions}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      label="輸入菜色名稱"
-                      variant="outlined"
-                      onKeyPress={handleKeyPress}
-                    />
-                  )}
                   value={dish}
                   onChange={(event, newValue) => {
                     setDish(newValue || '');
@@ -142,47 +132,30 @@ function App() {
                     setDish(newInputValue);
                   }}
                   filterOptions={filterOptions}
-                  freeSolo
-                  limitTags={6}
-                  ListboxProps={{
-                    style: { maxHeight: 48 * 6 } // 假設每個選項高度為 48px
-                  }}
-                  slotProps={{
-                    popper: {
-                      sx: {
-                        backgroundColor: '#fff',
-                        border: '1px solid #eee ', // 測試用的明顯邊框
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                        borderRadius: '12px',
-                        padding: '4px 8px',
-                        margin: '8px',
-                      },
-                    },
-                  }}
+                  onKeyPress={handleKeyPress}
+                  loading={loading}
+                  disabled={loading}
                 />
               </Grid>
               <Grid item xs={3}>
-                <Button
-                  fullWidth
-                  variant="contained"
+                <CustomButton
                   onClick={getIngredients}
-                  disabled={!dish.trim() || loading} // 當 dish 為空或正在加載時禁用按鈕
-                  sx={{ height: '56px' }} // 確保按鈕高度與輸入欄位一致
+                  disabled={!dish.trim() || loading}
+                  fullWidth
                 >
                   {loading ? '載入中...' : '搜尋'}
-                </Button>
+                </CustomButton>
               </Grid>
             </Grid>
-            <Button
-              fullWidth
-              variant="contained"
+            <CustomButton
               color="secondary"
               onClick={getRandomDish}
               disabled={loading}
-              sx={{ mt: 2, mb: 3, height: '56px' }}
+              fullWidth
+              sx={{ mt: 2, mb: 3 }}
             >
               今天午餐吃什麼
-            </Button>
+            </CustomButton>
             {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
             {error && (
               <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
