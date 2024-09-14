@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Autocomplete, TextField, Button, Container, Typography, Box, List, ListItem, ListItemText, CircularProgress, Paper, Divider, Grid } from '@mui/material';
+import { Autocomplete, TextField, Button, Container, Typography, Box, CircularProgress, Paper, Divider, Grid } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
@@ -14,60 +14,21 @@ import ShuffleIcon from '@mui/icons-material/Shuffle';
 // 假設您在 theme.js 中導出了所有主題
 import { allThemes } from './theme';
 
+// 創建一個自定義主題來覆蓋 Autocomplete 的樣式
 const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#4caf50',
-    },
-    secondary: {
-      main: '#ff9800',
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Noto Sans TC", "Roboto", "Helvetica", "Arial", sans-serif',
-  },
-  shape: {
-    borderRadius: 12, // 設置全局圓角為 12px
-  },
   components: {
-    MuiButton: {
+    MuiAutocomplete: {
       styleOverrides: {
-        root: {
-          borderRadius: 12,
+        popper: {
+          border: '2px solid red', // 測試用的明顯邊框
+          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          borderRadius: '4px',
         },
       },
     },
-    MuiPaper: {
-      styleOverrides: {
-        rounded: {
-          borderRadius: 12,
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 12,
-          },
-        },
-      },
-    },
-    // 可以根據需要添加更多組件的樣式覆蓋
   },
 });
 
-// 自定義過濾選項，最多顯示5個
 const filterOptions = createFilterOptions({
   limit: 5,
 });
@@ -128,6 +89,12 @@ function App() {
     setCurrentTheme(randomTheme);
   };
 
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter' && dish.trim() !== '') {
+      getIngredients();
+    }
+  };
+
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
@@ -164,6 +131,7 @@ function App() {
                       {...params}
                       label="輸入菜色名稱"
                       variant="outlined"
+                      onKeyPress={handleKeyPress}
                     />
                   )}
                   value={dish}
@@ -175,10 +143,20 @@ function App() {
                   }}
                   filterOptions={filterOptions}
                   freeSolo
-                  sx={{
-                    '& .MuiAutocomplete-popper': {
-                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                      borderRadius: '4px',
+                  limitTags={6}
+                  ListboxProps={{
+                    style: { maxHeight: 48 * 6 } // 假設每個選項高度為 48px
+                  }}
+                  slotProps={{
+                    popper: {
+                      sx: {
+                        backgroundColor: '#fff',
+                        border: '1px solid #eee ', // 測試用的明顯邊框
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                        borderRadius: '12px',
+                        padding: '4px 8px',
+                        margin: '8px',
+                      },
                     },
                   }}
                 />
@@ -188,7 +166,7 @@ function App() {
                   fullWidth
                   variant="contained"
                   onClick={getIngredients}
-                  disabled={loading}
+                  disabled={!dish.trim() || loading} // 當 dish 為空或正在加載時禁用按鈕
                   sx={{ height: '56px' }} // 確保按鈕高度與輸入欄位一致
                 >
                   {loading ? '載入中...' : '搜尋'}
