@@ -9,12 +9,7 @@ const CustomButton = ({ variant = 'contained', color = 'primary', onClick, disab
       onClick={onClick}
       disabled={disabled}
       fullWidth={fullWidth}
-      sx={{
-        height: '56px',
-        borderRadius: '12px',
-        textTransform: 'none',
-        ...sx
-      }}
+      sx={sx}
     >
       {children}
     </Button>

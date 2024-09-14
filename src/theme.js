@@ -68,12 +68,20 @@ const sharedTheme = {
         popper: {
           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
           borderRadius: 12,
+          border: '1px solid #eee',
+          backgroundColor: '#fff',
+          padding: '4px 8px',
+          margin: '8px',
+        },
+        listbox: {
+          maxHeight: 48 * 8, // 假設每個選項高度為 48px
         },
       },
     },
   },
 };
 
+//白色主題
 export const lightTheme = createTheme({
   ...sharedTheme,
   palette: {
@@ -91,6 +99,7 @@ export const lightTheme = createTheme({
   },
 });
 
+//黑色主題
 export const darkTheme = createTheme({
   ...sharedTheme,
   palette: {
@@ -108,6 +117,7 @@ export const darkTheme = createTheme({
   },
 });
 
+//藍色主題
 export const blueTheme = createTheme({
   ...sharedTheme,
   palette: {
@@ -125,6 +135,7 @@ export const blueTheme = createTheme({
   },
 });
 
+//綠色主題
 export const greenTheme = createTheme({
   ...sharedTheme,
   palette: {
@@ -142,6 +153,8 @@ export const greenTheme = createTheme({
   },
 });
 
+
+//紫色主題
 export const purpleTheme = createTheme({
   ...sharedTheme,
   palette: {

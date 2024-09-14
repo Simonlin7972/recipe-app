@@ -4,6 +4,7 @@ import { Autocomplete, TextField } from '@mui/material';
 const CustomInput = ({ 
   options, 
   value, 
+  inputValue,
   onChange, 
   onInputChange, 
   filterOptions, 
@@ -15,37 +16,31 @@ const CustomInput = ({
     <Autocomplete
       fullWidth
       options={options}
+      getOptionLabel={(option) => option.name}
+      groupBy={(option) => option.type}
       renderInput={(params) => (
         <TextField
           {...params}
-          label="輸入菜色名稱"
+          label="輸入菜色名稱、食材或調味料"
           variant="outlined"
           onKeyPress={onKeyPress}
         />
       )}
+      renderOption={(props, option) => (
+        <li {...props}>
+          {option.type === 'dish' ? '菜名：' : option.type === 'ingredient' ? '食材：' : '調味料：'}
+          {option.name}
+          {option.type !== 'dish' && ` (在 ${option.dish} 中)`}
+        </li>
+      )}
       value={value}
+      inputValue={inputValue}
       onChange={onChange}
       onInputChange={onInputChange}
       filterOptions={filterOptions}
       freeSolo
-      limitTags={6}
       loading={loading}
       disabled={disabled}
-      ListboxProps={{
-        style: { maxHeight: 48 * 8 } // 假設每個選項高度為 48px
-      }}
-      slotProps={{
-        popper: {
-          sx: {
-            backgroundColor: '#fff',
-            border: '1px solid #eee',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            borderRadius: '12px',
-            padding: '4px 8px',
-            margin: '8px',
-          },
-        },
-      }}
     />
   );
 };

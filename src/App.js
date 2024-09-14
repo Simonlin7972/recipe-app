@@ -40,22 +40,49 @@ function App() {
   const [error, setError] = useState('');
   const [randomDish, setRandomDish] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(lightTheme);
+  const [searchResults, setSearchResults] = useState([]);
+  const [inputValue, setInputValue] = useState('');
 
-  const dishOptions = useMemo(() => Object.keys(recipes), []);
+  const allOptions = useMemo(() => {
+    const options = [];
+    Object.entries(recipes).forEach(([dishName, recipe]) => {
+      options.push({ type: 'dish', name: dishName });
+      recipe.食材.forEach(ingredient => {
+        options.push({ type: 'ingredient', name: ingredient.名稱, dish: dishName });
+      });
+      recipe.調味料.forEach(seasoning => {
+        options.push({ type: 'seasoning', name: seasoning.名稱, dish: dishName });
+      });
+    });
+    return options;
+  }, []);
+
+  const dishOptions = useMemo(() => {
+    return allOptions.filter(option => option.type === 'dish').map(option => option.name);
+  }, [allOptions]);
 
   const getIngredients = () => {
     setLoading(true);
     setError('');
     setIngredients(null);
     setRandomDish(null);
+    setSearchResults([]);
 
     setTimeout(() => {
-      if (dish.trim() === '') {
-        setError('請輸入菜色名稱');
-      } else if (recipes[dish]) {
-        setIngredients(recipes[dish]);
+      if (inputValue.trim() === '') {
+        setError('請輸入菜色名稱、食材或調味料');
       } else {
-        setError('找不到該菜色的食材清單');
+        const results = allOptions.filter(option => 
+          option.name.toLowerCase().includes(inputValue.toLowerCase())
+        );
+        if (results.length > 0) {
+          setSearchResults(results);
+          if (results[0].type === 'dish') {
+            setIngredients(recipes[results[0].name]);
+          }
+        } else {
+          setError('找不到相關的菜色、食材或調味料');
+        }
       }
       setLoading(false);
     }, 500);
@@ -89,7 +116,7 @@ function App() {
   };
 
   const handleKeyPress = (event) => {
-    if (event.key === 'Enter' && dish.trim() !== '') {
+    if (event.key === 'Enter' && inputValue.trim() !== '') {
       getIngredients();
     }
   };
@@ -123,13 +150,14 @@ function App() {
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={9}>
                 <CustomInput
-                  options={dishOptions}
+                  options={allOptions}
                   value={dish}
+                  inputValue={inputValue}
                   onChange={(event, newValue) => {
-                    setDish(newValue || '');
+                    setDish(newValue);
                   }}
                   onInputChange={(event, newInputValue) => {
-                    setDish(newInputValue);
+                    setInputValue(newInputValue);
                   }}
                   filterOptions={filterOptions}
                   onKeyPress={handleKeyPress}
@@ -140,7 +168,7 @@ function App() {
               <Grid item xs={3}>
                 <CustomButton
                   onClick={getIngredients}
-                  disabled={!dish.trim() || loading}
+                  disabled={!inputValue.trim() || loading}
                   fullWidth
                 >
                   {loading ? '載入中...' : '搜尋'}
@@ -210,6 +238,18 @@ function App() {
                     </Grid>
                   ))}
                 </Grid>
+              </Box>
+            )}
+            {searchResults.length > 0 && !ingredients && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>搜索結果：</Typography>
+                {searchResults.map((result, index) => (
+                  <Typography key={index}>
+                    {result.type === 'dish' ? '菜名：' : result.type === 'ingredient' ? '食材：' : '調味料：'}
+                    {result.name} 
+                    {result.type !== 'dish' && ` (在 ${result.dish} 中)`}
+                  </Typography>
+                ))}
               </Box>
             )}
           </Paper>
