@@ -4,7 +4,11 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
 import recipes from './recipes.json';
-import { styled } from '@mui/material/styles';
+import { lightTheme, darkTheme } from './theme';
+import CssBaseline from '@mui/material/CssBaseline';
+import { IconButton } from '@mui/material';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 const theme = createTheme({
   palette: {
@@ -21,14 +25,41 @@ const theme = createTheme({
   typography: {
     fontFamily: '"Noto Sans TC", "Roboto", "Helvetica", "Arial", sans-serif',
   },
+  shape: {
+    borderRadius: 12, // 設置全局圓角為 12px
+  },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 12,
         },
       },
     },
+    MuiPaper: {
+      styleOverrides: {
+        rounded: {
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 12,
+          },
+        },
+      },
+    },
+    // 可以根據需要添加更多組件的樣式覆蓋
   },
 });
 
@@ -37,14 +68,8 @@ const filterOptions = createFilterOptions({
   limit: 5,
 });
 
-// 使用 styled 函數創建自定義組件
-const CustomPaper = styled(Paper)(({ theme }) => ({
-  padding: theme.spacing(4),
-  borderRadius: 16,
-  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-}));
-
 function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [dish, setDish] = useState('');
   const [ingredients, setIngredients] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -88,120 +113,122 @@ function App() {
     }, 500);
   };
 
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
-    <ThemeProvider theme={theme}>
-      <Container maxWidth="sm" sx={{ py: 4 }}>
-        <CustomPaper>
-          <Typography 
-            variant="h4" 
-            component="h1" 
-            gutterBottom 
-            align="center" 
-            sx={{ 
-              fontWeight: 'bold', 
-              color: 'primary.main',
-              textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
-            }}
-          >
-            食材清單生成器
-          </Typography>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={9}>
-              <Autocomplete
-                fullWidth
-                options={dishOptions}
-                renderInput={(params) => <TextField {...params} label="輸入菜色名稱" variant="outlined" />}
-                value={dish}
-                onChange={(event, newValue) => {
-                  setDish(newValue || '');
-                }}
-                onInputChange={(event, newInputValue) => {
-                  setDish(newInputValue);
-                }}
-                filterOptions={filterOptions}
-                freeSolo
-              />
-            </Grid>
-            <Grid item xs={3}>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={getIngredients}
-                disabled={loading}
-                sx={{ 
-                  height: '56px',
-                  fontWeight: 'bold',
-                  '&:hover': {
-                    backgroundColor: 'secondary.main',
-                  },
-                }}
-              >
-                {loading ? '載入中...' : '搜尋'}
-              </Button>
-            </Grid>
-          </Grid>
-          <Button
-            fullWidth
-            variant="contained"
-            color="secondary"
-            onClick={getRandomDish}
-            disabled={loading}
-            sx={{ mt: 2, mb: 3 }}
-          >
-            今天午餐吃什麼
-          </Button>
-          {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
-          {error && (
-            <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
-              {error}
+    <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
+      <CssBaseline />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: '100vh',
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
+          <IconButton onClick={toggleTheme} color="inherit">
+            {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+          </IconButton>
+        </Box>
+        <Container maxWidth="sm" sx={{ py: 4 }}>
+          <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
+            <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+              食材清單生成器
             </Typography>
-          )}
-          {(ingredients || randomDish) && (
-            <Box sx={{ mt: 4 }}>
-              <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
-                {randomDish ? `今日推薦：${randomDish.name}` : '食材清單：'}
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={9}>
+                <Autocomplete
+                  fullWidth
+                  options={dishOptions}
+                  renderInput={(params) => <TextField {...params} label="輸入菜色名稱" variant="outlined" />}
+                  value={dish}
+                  onChange={(event, newValue) => {
+                    setDish(newValue || '');
+                  }}
+                  onInputChange={(event, newInputValue) => {
+                    setDish(newInputValue);
+                  }}
+                  filterOptions={filterOptions}
+                  freeSolo
+                />
+              </Grid>
+              <Grid item xs={3}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={getIngredients}
+                  disabled={loading}
+                  sx={{ height: '56px' }} // 確保按鈕高度與輸入欄位一致
+                >
+                  {loading ? '載入中...' : '搜尋'}
+                </Button>
+              </Grid>
+            </Grid>
+            <Button
+              fullWidth
+              variant="contained"
+              color="secondary"
+              onClick={getRandomDish}
+              disabled={loading}
+              sx={{ mt: 2, mb: 3 }}
+            >
+              今天午餐吃什麼
+            </Button>
+            {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
+            {error && (
+              <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
+                {error}
               </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>主要食材：</Typography>
-              <List dense>
-                {(randomDish ? randomDish.食材 : ingredients.食材).map((ingredient, index) => (
-                  <ListItem key={index}>
-                    <ListItemText 
-                      primary={`${ingredient.名稱} - ${ingredient.份量}`} 
-                    />
-                  </ListItem>
-                ))}
-              </List>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>調味料：</Typography>
-              <List dense>
-                {(randomDish ? randomDish.調味料 : ingredients.調味料).map((seasoning, index) => (
-                  <ListItem key={index}>
-                    <ListItemText 
-                      primary={`${seasoning.名稱} - ${seasoning.份量}`} 
-                    />
-                  </ListItem>
-                ))}
-              </List>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                預估熱量：<span style={{ color: theme.palette.primary.main }}>
-                  {randomDish ? randomDish.預估熱量 : ingredients.預估熱量}
-                </span> 卡路里
-              </Typography>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2 }}>營養成分：</Typography>
-              <List dense>
-                {Object.entries(randomDish ? randomDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
-                  <ListItem key={index}>
-                    <ListItemText 
-                      primary={`${nutrient}: ${value}`} 
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          )}
-        </CustomPaper>
-      </Container>
+            )}
+            {(ingredients || randomDish) && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  {randomDish ? `今日推薦：${randomDish.name}` : '食材清單：'}
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>主要食材：</Typography>
+                <List dense>
+                  {(randomDish ? randomDish.食材 : ingredients.食材).map((ingredient, index) => (
+                    <ListItem key={index}>
+                      <ListItemText 
+                        primary={`${ingredient.名稱} - ${ingredient.份量}`} 
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>調味料：</Typography>
+                <List dense>
+                  {(randomDish ? randomDish.調味料 : ingredients.調味料).map((seasoning, index) => (
+                    <ListItem key={index}>
+                      <ListItemText 
+                        primary={`${seasoning.名稱} - ${seasoning.份量}`} 
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                  預估熱量：<span style={{ color: theme.palette.primary.main }}>
+                    {randomDish ? randomDish.預估熱量 : ingredients.預估熱量}
+                  </span> 卡路里
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2 }}>營養成分：</Typography>
+                <List dense>
+                  {Object.entries(randomDish ? randomDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
+                    <ListItem key={index}>
+                      <ListItemText 
+                        primary={`${nutrient}: ${value}`} 
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+          </Paper>
+        </Container>
+      </Box>
     </ThemeProvider>
   );
 }
