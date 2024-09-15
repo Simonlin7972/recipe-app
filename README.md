@@ -1,4 +1,4 @@
-# Getting Started with Create React App
+這是一個食譜食材 app
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
