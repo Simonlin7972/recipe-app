@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Link, useMediaQuery } from '@mui/material';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Link, useMediaQuery, Fade } from '@mui/material';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
@@ -28,6 +28,7 @@ function App() {
   const [currentThemeName, setCurrentThemeName] = useState('淺色主題');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [contentLoaded, setContentLoaded] = useState(false);
 
   const allOptions = useMemo(() => {
     const options = [];
@@ -49,6 +50,7 @@ function App() {
 
   const getIngredients = () => {
     setIsSearching(true);
+    setContentLoaded(false);
     setError('');
     setIngredients(null);
     setRandomDish(null);
@@ -75,6 +77,8 @@ function App() {
         }
       }
       setIsSearching(false);
+      // 設置一個短暫的延遲，以確保 skeleton 消失後再顯示內容
+      setTimeout(() => setContentLoaded(true), 0);
     }, 1500);
   };
 
@@ -114,6 +118,13 @@ function App() {
       getIngredients();
     }
   };
+
+  // 重置 contentLoaded 狀態
+  useEffect(() => {
+    if (isSearching) {
+      setContentLoaded(false);
+    }
+  }, [isSearching]);
 
   return (
     <ThemeProvider theme={currentTheme}>
@@ -177,82 +188,87 @@ function App() {
                 <Skeleton variant="rectangular" height={100} sx={{ mt: 2 }} />
               </Box>
             )}
-            {error && (
-              <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
-                {error}
-              </Typography>
-            )}
-            {searchResults.length > 0 && !selectedDish && (
-              <Box sx={{ mt: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  以下是可以用「{inputValue}」來製作的料理：
-                </Typography>
-                <List>
-                  {searchResults.map((dish, index) => (
-                    <ListItem key={index}>
-                      <Link
-                        component="button"
-                        variant="body1"
-                        onClick={() => handleDishClick(dish)}
-                        sx={{ textAlign: 'left' }}
-                      >
-                        {`${index + 1}. ${dish}`}
-                      </Link>
-                    </ListItem>
-                  ))}
-                </List>
+
+            <Fade in={contentLoaded} timeout={500}>
+              <Box>
+                {error && (
+                  <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
+                    {error}
+                  </Typography>
+                )}
+                {searchResults.length > 0 && !selectedDish && (
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                      以下是可以用「{inputValue}」來製作的料理：
+                    </Typography>
+                    <List>
+                      {searchResults.map((dish, index) => (
+                        <ListItem key={index}>
+                          <Link
+                            component="button"
+                            variant="body1"
+                            onClick={() => handleDishClick(dish)}
+                            sx={{ textAlign: 'left' }}
+                          >
+                            {`${index + 1}. ${dish}`}
+                          </Link>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Box>
+                )}
+                {(ingredients || selectedDish) && (
+                  <Box sx={{ mt: 4 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
+                      {selectedDish ? selectedDish.name : '食材清單：'}
+                    </Typography>
+                    <Divider sx={{ mb: 2 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>主要食材：</Typography>
+                    <Grid container spacing={2}>
+                      {(selectedDish ? selectedDish.食材 : ingredients.食材).map((ingredient, index) => (
+                        <Grid item xs={12} key={index}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography sx={{ flexShrink: 0, mr: 2 }}>{ingredient.名稱}</Typography>
+                            <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
+                            <Typography sx={{ flexShrink: 0, ml: 2 }}>{ingredient.份量}</Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>調味料：</Typography>
+                    <Grid container spacing={2}>
+                      {(selectedDish ? selectedDish.調味料 : ingredients.調味料).map((seasoning, index) => (
+                        <Grid item xs={12} key={index}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography sx={{ flexShrink: 0, mr: 2 }}>{seasoning.名稱}</Typography>
+                            <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
+                            <Typography sx={{ flexShrink: 0, ml: 2 }}>{seasoning.份量}</Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                    <Divider sx={{ my: 2 }} />
+                    <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                      預估熱量：<span style={{ color: currentTheme.palette.primary.main }}>
+                        {selectedDish ? selectedDish.預估熱量 : ingredients.預估熱量}
+                      </span> 卡路里
+                    </Typography>
+                    <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2 }}>營養成分：</Typography>
+                    <Grid container spacing={2}>
+                      {Object.entries(selectedDish ? selectedDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
+                        <Grid item xs={12} key={index}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Typography sx={{ flexShrink: 0, mr: 2 }}>{nutrient}</Typography>
+                            <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
+                            <Typography sx={{ flexShrink: 0, ml: 2 }}>{value}</Typography>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )}
               </Box>
-            )}
-            {(ingredients || selectedDish) && (
-              <Box sx={{ mt: 4 }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  {selectedDish ? selectedDish.name : '食材清單：'}
-                </Typography>
-                <Divider sx={{ mb: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>主要食材：</Typography>
-                <Grid container spacing={2}>
-                  {(selectedDish ? selectedDish.食材 : ingredients.食材).map((ingredient, index) => (
-                    <Grid item xs={12} key={index}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ flexShrink: 0, mr: 2 }}>{ingredient.名稱}</Typography>
-                        <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
-                        <Typography sx={{ flexShrink: 0, ml: 2 }}>{ingredient.份量}</Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>調味料：</Typography>
-                <Grid container spacing={2}>
-                  {(selectedDish ? selectedDish.調味料 : ingredients.調味料).map((seasoning, index) => (
-                    <Grid item xs={12} key={index}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ flexShrink: 0, mr: 2 }}>{seasoning.名稱}</Typography>
-                        <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
-                        <Typography sx={{ flexShrink: 0, ml: 2 }}>{seasoning.份量}</Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-                <Divider sx={{ my: 2 }} />
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  預估熱量：<span style={{ color: currentTheme.palette.primary.main }}>
-                    {selectedDish ? selectedDish.預估熱量 : ingredients.預估熱量}
-                  </span> 卡路里
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2 }}>營養成分：</Typography>
-                <Grid container spacing={2}>
-                  {Object.entries(selectedDish ? selectedDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
-                    <Grid item xs={12} key={index}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ flexShrink: 0, mr: 2 }}>{nutrient}</Typography>
-                        <Box sx={{ flexGrow: 1, borderBottom: '1px dashed rgba(204, 204, 204, 0.5)' }} />
-                        <Typography sx={{ flexShrink: 0, ml: 2 }}>{value}</Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
-              </Box>
-            )}
+            </Fade>
           </Paper>
         </Container>
       </Box>

@@ -1,5 +1,7 @@
 import React from 'react';
 import { Autocomplete, TextField } from '@mui/material';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 const CustomInput = ({ 
   options, 
@@ -12,6 +14,9 @@ const CustomInput = ({
   loading,
   disabled
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const displayOptions = inputValue
     ? options
     : options.filter(option => option.type === 'dish');
