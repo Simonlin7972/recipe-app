@@ -12,30 +12,17 @@ const CustomInput = ({
   loading,
   disabled
 }) => {
-  // 新增一個函數來去重複選項
-  const deduplicateOptions = (opts) => {
-    const uniqueOptions = [];
-    const seenNames = new Set();
-
-    opts.forEach(option => {
-      if (!seenNames.has(option.name)) {
-        seenNames.add(option.name);
-        uniqueOptions.push(option);
-      }
-    });
-
-    return uniqueOptions;
-  };
-
-  // 使用去重複後的選項
-  const uniqueOptions = deduplicateOptions(options);
+  const displayOptions = inputValue
+    ? options
+    : options.filter(option => option.type === 'dish');
 
   return (
     <Autocomplete
       fullWidth
-      options={uniqueOptions}
+      options={displayOptions}
       getOptionLabel={(option) => option?.name || ''}
       groupBy={(option) => {
+        if (!inputValue) return '';
         switch (option.type) {
           case 'dish':
             return '菜色';
@@ -56,8 +43,9 @@ const CustomInput = ({
         />
       )}
       renderOption={(props, option) => (
-        <li {...props}>
+        <li {...props} style={{ borderRadius: 0 }}>
           {option.name}
+          {inputValue && option.type !== 'dish' && ` (${option.dish})`}
         </li>
       )}
       value={value || null}
@@ -68,6 +56,33 @@ const CustomInput = ({
       freeSolo
       loading={loading}
       disabled={disabled}
+      slotProps={{
+        paper: {
+          sx: {
+            '& .MuiAutocomplete-listbox': {
+              padding: 0,
+              boxShadow: 'none',
+            },
+            '& .MuiAutocomplete-option': {
+              // 這裡調整 listbox item 的樣式
+              padding: '8px 16px',
+              borderRadius: 2, // 使用主題的 borderRadius 值，通常對應 8px
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+              },
+              '&[aria-selected="true"]': {
+                backgroundColor: 'rgba(0, 0, 0, 0.08)',
+              },
+            },
+          },
+        },
+        popper: {
+          sx: {
+            // 這裡可以調整 popper 的樣式
+            padding: 0,
+          },
+        },
+      }}
     />
   );
 };

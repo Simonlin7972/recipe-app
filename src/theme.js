@@ -25,7 +25,8 @@ const sharedTheme = {
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: 'none',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', // 柔和的陰影
+          border: '1px solid rgba(0, 0, 0, 0.05)', // 淡淡的邊框
           borderRadius: 12,
         },
       },
@@ -153,7 +154,6 @@ export const greenTheme = createTheme({
   },
 });
 
-
 //紫色主題
 export const purpleTheme = createTheme({
   ...sharedTheme,
@@ -166,11 +166,74 @@ export const purpleTheme = createTheme({
       paper: '#ffffff',
     },
     text: {
-      primary: '#4a148c',
+      primary: '#4aI148c',
       secondary: '#6a1b9a',
     },
   },
 });
 
+// 深海主題
+export const deepOceanTheme = createTheme({
+  ...sharedTheme,
+  palette: {
+    mode: 'dark',
+    primary: { main: '#00bcd4' },  // 青色
+    secondary: { main: '#ff9800' },  // 橙色
+    background: {
+      default: '#001f3f',  // 深藍色
+      paper: '#002b56',    // 稍淺的藍色
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#b0bec5',
+    },
+  },
+});
+
+// 沙漠日落主題
+export const desertSunsetTheme = createTheme({
+  ...sharedTheme,
+  palette: {
+    mode: 'light',
+    primary: { main: '#ff5722' },  // 深橙色
+    secondary: { main: '#ffc107' },  // 琥珀色
+    background: {
+      default: '#fff8e1',  // 淺黃色
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#3e2723',  // 深棕色
+      secondary: '#5d4037',  // 棕色
+    },
+  },
+});
+
+// 森林主題
+export const forestTheme = createTheme({
+  ...sharedTheme,
+  palette: {
+    mode: 'light',
+    primary: { main: '#2e7d32' },  // 深綠色
+    secondary: { main: '#ffd54f' },  // 黃色
+    background: {
+      default: '#e8f5e9',  // 淺綠色
+      paper: '#ffffff',
+    },
+    text: {
+      primary: '#1b5e20',  // 深綠色
+      secondary: '#33691e',  // 綠色
+    },
+  },
+});
+
 // 將所有主題導出為一個數組
-export const allThemes = [lightTheme, darkTheme, blueTheme, greenTheme, purpleTheme];
+export const allThemes = [
+  lightTheme, 
+  darkTheme, 
+  blueTheme, 
+  greenTheme, 
+  purpleTheme, 
+  deepOceanTheme, 
+  desertSunsetTheme, 
+  forestTheme
+];

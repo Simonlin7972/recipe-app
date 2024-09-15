@@ -1,48 +1,33 @@
 import React, { useState, useMemo } from 'react';
-import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Link } from '@mui/material';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Link, useMediaQuery } from '@mui/material';
+import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
 import recipes from './recipes.json';
-import { lightTheme, darkTheme, allThemes } from './theme';
+import { allThemes } from './theme';
 import CssBaseline from '@mui/material/CssBaseline';
 import { IconButton } from '@mui/material';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import CustomButton from './components/CustomButton';
 import CustomInput from './components/CustomInput';
-
-// 創建一個自定義主題來覆蓋 Autocomplete 的樣式
-const theme = createTheme({
-  components: {
-    MuiAutocomplete: {
-      styleOverrides: {
-        popper: {
-          border: '2px solid red', // 測試用的明顯邊框
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-          borderRadius: '4px',
-        },
-      },
-    },
-  },
-});
 
 const filterOptions = createFilterOptions({
   limit: 5,
 });
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [dish, setDish] = useState(null);  // 將初始值設為 null
   const [ingredients, setIngredients] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
   const [randomDish, setRandomDish] = useState(null);
-  const [currentTheme, setCurrentTheme] = useState(lightTheme);
+  const [currentTheme, setCurrentTheme] = useState(allThemes[0]);
   const [searchResults, setSearchResults] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [selectedDish, setSelectedDish] = useState(null);
+  const [currentThemeName, setCurrentThemeName] = useState('淺色主題');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const allOptions = useMemo(() => {
     const options = [];
@@ -115,14 +100,13 @@ function App() {
     }, 500);
   };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    setCurrentTheme(isDarkMode ? lightTheme : darkTheme);
-  };
-
   const randomizeTheme = () => {
-    const randomTheme = allThemes[Math.floor(Math.random() * allThemes.length)];
+    const randomIndex = Math.floor(Math.random() * allThemes.length);
+    const randomTheme = allThemes[randomIndex];
     setCurrentTheme(randomTheme);
+    // 設置主題名稱
+    const themeNames = ['淺色主題', '深色主題', '藍色主題', '綠色主題', '紫色主題', '深海主題', '沙漠日落主題', '森林主題'];
+    setCurrentThemeName(themeNames[randomIndex]);
   };
 
   const handleKeyPress = (event) => {
@@ -141,10 +125,10 @@ function App() {
           minHeight: '100vh',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2 }}>
-          <IconButton onClick={toggleTheme} color="inherit">
-            {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', p: 2 }}>
+          <Typography variant="body2" sx={{ mr: 2 }}>
+            {currentThemeName}
+          </Typography>
           <IconButton onClick={randomizeTheme} color="inherit">
             <ShuffleIcon />
           </IconButton>
@@ -157,8 +141,8 @@ function App() {
             <Typography variant="caption" component="h2" gutterBottom align="left" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 4 }}>
               Made by Simon L
             </Typography>
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={9}>
+            <Grid container spacing={2} direction={isMobile ? 'column' : 'row'}>
+              <Grid item xs={12} sm={9}>
                 <CustomInput
                   options={allOptions}
                   value={dish}
@@ -171,30 +155,20 @@ function App() {
                   }}
                   filterOptions={filterOptions}
                   onKeyPress={handleKeyPress}
+                  loading={isSearching}
                   disabled={isSearching}
-                  onSearchClick={getIngredients}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={12} sm={3}>
                 <CustomButton
                   onClick={getIngredients}
                   disabled={!inputValue.trim() || isSearching}
                   fullWidth
                 >
-                  {isSearching ? '載入中...' : '搜尋'}
+                  {isSearching ? <CircularProgress size={24} color="inherit" /> : '搜尋'}
                 </CustomButton>
               </Grid>
             </Grid>
-            <CustomButton
-              color="secondary"
-              startIcon={<ShuffleIcon />}
-              onClick={getRandomDish}
-              disabled={isSearching}
-              fullWidth
-              sx={{ mt: 2, mb: 3 }}
-            >
-              今天午餐吃什麼
-            </CustomButton>
             {isSearching && (
               <Box sx={{ mt: 4 }}>
                 <Skeleton variant="text" height={40} />
@@ -261,7 +235,7 @@ function App() {
                 </Grid>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                  預估熱量：<span style={{ color: theme.palette.primary.main }}>
+                  預估熱量：<span style={{ color: currentTheme.palette.primary.main }}>
                     {selectedDish ? selectedDish.預估熱量 : ingredients.預估熱量}
                   </span> 卡路里
                 </Typography>
