@@ -12,12 +12,41 @@ const CustomInput = ({
   loading,
   disabled
 }) => {
+  // 新增一個函數來去重複選項
+  const deduplicateOptions = (opts) => {
+    const uniqueOptions = [];
+    const seenNames = new Set();
+
+    opts.forEach(option => {
+      if (!seenNames.has(option.name)) {
+        seenNames.add(option.name);
+        uniqueOptions.push(option);
+      }
+    });
+
+    return uniqueOptions;
+  };
+
+  // 使用去重複後的選項
+  const uniqueOptions = deduplicateOptions(options);
+
   return (
     <Autocomplete
       fullWidth
-      options={options}
-      getOptionLabel={(option) => option.name}
-      groupBy={(option) => option.type}
+      options={uniqueOptions}
+      getOptionLabel={(option) => option?.name || ''}
+      groupBy={(option) => {
+        switch (option.type) {
+          case 'dish':
+            return '菜色';
+          case 'ingredient':
+            return '食材';
+          case 'seasoning':
+            return '調味料';
+          default:
+            return '';
+        }
+      }}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -28,13 +57,11 @@ const CustomInput = ({
       )}
       renderOption={(props, option) => (
         <li {...props}>
-          {option.type === 'dish' ? '菜名：' : option.type === 'ingredient' ? '食材：' : '調味料：'}
           {option.name}
-          {option.type !== 'dish' && ` (在 ${option.dish} 中)`}
         </li>
       )}
-      value={value}
-      inputValue={inputValue}
+      value={value || null}
+      inputValue={inputValue || ''}
       onChange={onChange}
       onInputChange={onInputChange}
       filterOptions={filterOptions}

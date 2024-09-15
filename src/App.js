@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Link } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
@@ -34,14 +34,15 @@ const filterOptions = createFilterOptions({
 
 function App() {
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [dish, setDish] = useState('');
+  const [dish, setDish] = useState(null);  // 將初始值設為 null
   const [ingredients, setIngredients] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
   const [randomDish, setRandomDish] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(lightTheme);
   const [searchResults, setSearchResults] = useState([]);
   const [inputValue, setInputValue] = useState('');
+  const [selectedDish, setSelectedDish] = useState(null);
 
   const allOptions = useMemo(() => {
     const options = [];
@@ -62,11 +63,12 @@ function App() {
   }, [allOptions]);
 
   const getIngredients = () => {
-    setLoading(true);
+    setIsSearching(true);
     setError('');
     setIngredients(null);
     setRandomDish(null);
     setSearchResults([]);
+    setSelectedDish(null);
 
     setTimeout(() => {
       if (inputValue.trim() === '') {
@@ -76,20 +78,28 @@ function App() {
           option.name.toLowerCase().includes(inputValue.toLowerCase())
         );
         if (results.length > 0) {
-          setSearchResults(results);
           if (results[0].type === 'dish') {
             setIngredients(recipes[results[0].name]);
+          } else {
+            // 如果搜索的是食材或調味料
+            const relatedDishes = results.map(result => result.dish).filter((value, index, self) => self.indexOf(value) === index);
+            setSearchResults(relatedDishes);
           }
         } else {
           setError('找不到相關的菜色、食材或調味料');
         }
       }
-      setLoading(false);
-    }, 500);
+      setIsSearching(false);
+    }, 1500);
+  };
+
+  const handleDishClick = (dishName) => {
+    setSelectedDish(recipes[dishName]);
+    setIngredients(recipes[dishName]);
   };
 
   const getRandomDish = () => {
-    setLoading(true);
+    setIsSearching(true);
     setError('');
     setIngredients(null);
     
@@ -101,7 +111,7 @@ function App() {
         name: randomDishName,
         ...recipes[randomDishName]
       });
-      setLoading(false);
+      setIsSearching(false);
     }, 500);
   };
 
@@ -161,44 +171,73 @@ function App() {
                   }}
                   filterOptions={filterOptions}
                   onKeyPress={handleKeyPress}
-                  loading={loading}
-                  disabled={loading}
+                  disabled={isSearching}
+                  onSearchClick={getIngredients}
                 />
               </Grid>
               <Grid item xs={3}>
                 <CustomButton
                   onClick={getIngredients}
-                  disabled={!inputValue.trim() || loading}
+                  disabled={!inputValue.trim() || isSearching}
                   fullWidth
                 >
-                  {loading ? '載入中...' : '搜尋'}
+                  {isSearching ? '載入中...' : '搜尋'}
                 </CustomButton>
               </Grid>
             </Grid>
             <CustomButton
               color="secondary"
+              startIcon={<ShuffleIcon />}
               onClick={getRandomDish}
-              disabled={loading}
+              disabled={isSearching}
               fullWidth
               sx={{ mt: 2, mb: 3 }}
             >
               今天午餐吃什麼
             </CustomButton>
-            {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 2 }} />}
+            {isSearching && (
+              <Box sx={{ mt: 4 }}>
+                <Skeleton variant="text" height={40} />
+                <Skeleton variant="rectangular" height={100} sx={{ mt: 2 }} />
+                <Skeleton variant="text" height={40} sx={{ mt: 2 }} />
+                <Skeleton variant="rectangular" height={100} sx={{ mt: 2 }} />
+              </Box>
+            )}
             {error && (
               <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
                 {error}
               </Typography>
             )}
-            {(ingredients || randomDish) && (
+            {searchResults.length > 0 && !selectedDish && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+                  以下是可以用「{inputValue}」來製作的料理：
+                </Typography>
+                <List>
+                  {searchResults.map((dish, index) => (
+                    <ListItem key={index}>
+                      <Link
+                        component="button"
+                        variant="body1"
+                        onClick={() => handleDishClick(dish)}
+                        sx={{ textAlign: 'left' }}
+                      >
+                        {`${index + 1}. ${dish}`}
+                      </Link>
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+            {(ingredients || selectedDish) && (
               <Box sx={{ mt: 4 }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2 }}>
-                  {randomDish ? `今日推薦：${randomDish.name}` : '食材清單：'}
+                  {selectedDish ? selectedDish.name : '食材清單：'}
                 </Typography>
                 <Divider sx={{ mb: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 1 }}>主要食材：</Typography>
                 <Grid container spacing={2}>
-                  {(randomDish ? randomDish.食材 : ingredients.食材).map((ingredient, index) => (
+                  {(selectedDish ? selectedDish.食材 : ingredients.食材).map((ingredient, index) => (
                     <Grid item xs={12} key={index}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography sx={{ flexShrink: 0, mr: 2 }}>{ingredient.名稱}</Typography>
@@ -210,7 +249,7 @@ function App() {
                 </Grid>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2, mb: 1 }}>調味料：</Typography>
                 <Grid container spacing={2}>
-                  {(randomDish ? randomDish.調味料 : ingredients.調味料).map((seasoning, index) => (
+                  {(selectedDish ? selectedDish.調味料 : ingredients.調味料).map((seasoning, index) => (
                     <Grid item xs={12} key={index}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography sx={{ flexShrink: 0, mr: 2 }}>{seasoning.名稱}</Typography>
@@ -223,12 +262,12 @@ function App() {
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                   預估熱量：<span style={{ color: theme.palette.primary.main }}>
-                    {randomDish ? randomDish.預估熱量 : ingredients.預估熱量}
+                    {selectedDish ? selectedDish.預估熱量 : ingredients.預估熱量}
                   </span> 卡路里
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 2 }}>營養成分：</Typography>
                 <Grid container spacing={2}>
-                  {Object.entries(randomDish ? randomDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
+                  {Object.entries(selectedDish ? selectedDish.營養成分 : ingredients.營養成分).map(([nutrient, value], index) => (
                     <Grid item xs={12} key={index}>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography sx={{ flexShrink: 0, mr: 2 }}>{nutrient}</Typography>
@@ -238,18 +277,6 @@ function App() {
                     </Grid>
                   ))}
                 </Grid>
-              </Box>
-            )}
-            {searchResults.length > 0 && !ingredients && (
-              <Box sx={{ mt: 4 }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>搜索結果：</Typography>
-                {searchResults.map((result, index) => (
-                  <Typography key={index}>
-                    {result.type === 'dish' ? '菜名：' : result.type === 'ingredient' ? '食材：' : '調味料：'}
-                    {result.name} 
-                    {result.type !== 'dish' && ` (在 ${result.dish} 中)`}
-                  </Typography>
-                ))}
               </Box>
             )}
           </Paper>
