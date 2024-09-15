@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Link, useMediaQuery, Fade } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, useMediaQuery, Fade, List, ListItem, ListItemText } from '@mui/material';
 import { ThemeProvider, useTheme } from '@mui/material/styles';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import './App.css';
@@ -16,11 +16,10 @@ const filterOptions = createFilterOptions({
 });
 
 function App() {
-  const [dish, setDish] = useState(null);  // 將初始值設為 null
+  const [dish, setDish] = useState(null);
   const [ingredients, setIngredients] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
-  const [randomDish, setRandomDish] = useState(null);
   const [currentTheme, setCurrentTheme] = useState(allThemes[0]);
   const [searchResults, setSearchResults] = useState([]);
   const [inputValue, setInputValue] = useState('');
@@ -44,16 +43,11 @@ function App() {
     return options;
   }, []);
 
-  const dishOptions = useMemo(() => {
-    return allOptions.filter(option => option.type === 'dish').map(option => option.name);
-  }, [allOptions]);
-
   const getIngredients = () => {
     setIsSearching(true);
     setContentLoaded(false);
     setError('');
     setIngredients(null);
-    setRandomDish(null);
     setSearchResults([]);
     setSelectedDish(null);
 
@@ -68,7 +62,6 @@ function App() {
           if (results[0].type === 'dish') {
             setIngredients(recipes[results[0].name]);
           } else {
-            // 如果搜索的是食材或調味料
             const relatedDishes = results.map(result => result.dish).filter((value, index, self) => self.indexOf(value) === index);
             setSearchResults(relatedDishes);
           }
@@ -77,7 +70,6 @@ function App() {
         }
       }
       setIsSearching(false);
-      // 設置一個短暫的延遲，以確保 skeleton 消失後再顯示內容
       setTimeout(() => setContentLoaded(true), 0);
     }, 1500);
   };
@@ -87,29 +79,11 @@ function App() {
     setIngredients(recipes[dishName]);
   };
 
-  const getRandomDish = () => {
-    setIsSearching(true);
-    setError('');
-    setIngredients(null);
-    
-    setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * dishOptions.length);
-      const randomDishName = dishOptions[randomIndex];
-      setDish(randomDishName);
-      setRandomDish({
-        name: randomDishName,
-        ...recipes[randomDishName]
-      });
-      setIsSearching(false);
-    }, 500);
-  };
-
   const randomizeTheme = () => {
     const randomIndex = Math.floor(Math.random() * allThemes.length);
     const randomTheme = allThemes[randomIndex];
     setCurrentTheme(randomTheme);
-    // 設置主題名稱
-    const themeNames = ['淺色主題', '深色主題', '藍色主題', '綠色主題', '紫色主題', '深海主題', '沙漠日落主題', '森林主題'];
+    const themeNames = ['淺色主題', '色主題', '藍色主題', '綠色主題', '紫色主題', '深海主題', '沙漠日落主題', '森林主題'];
     setCurrentThemeName(themeNames[randomIndex]);
   };
 
@@ -119,7 +93,6 @@ function App() {
     }
   };
 
-  // 重置 contentLoaded 狀態
   useEffect(() => {
     if (isSearching) {
       setContentLoaded(false);
@@ -203,15 +176,21 @@ function App() {
                     </Typography>
                     <List>
                       {searchResults.map((dish, index) => (
-                        <ListItem key={index}>
-                          <Link
-                            component="button"
-                            variant="body1"
-                            onClick={() => handleDishClick(dish)}
-                            sx={{ textAlign: 'left' }}
-                          >
-                            {`${index + 1}. ${dish}`}
-                          </Link>
+                        <ListItem 
+                          key={index} 
+                          button 
+                          onClick={() => handleDishClick(dish)}
+                          sx={{
+                            '&:hover': {
+                              cursor: 'pointer',
+                              backgroundColor: 'rgba(0, 0, 0, 0.04)', // 可選：添加背景色變化
+                            },
+                          }}
+                        >
+                          <ListItemText 
+                            primary={`${index + 1}. ${dish}`}
+                            secondary="點擊查看食譜"
+                          />
                         </ListItem>
                       ))}
                     </List>
