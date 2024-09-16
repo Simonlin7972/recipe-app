@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useTransition } from 'react';
+import React, { useState, useMemo, useTransition, useEffect } from 'react';
 import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Fade } from '@mui/material';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import CustomButton from './CustomButton';
@@ -19,6 +19,21 @@ function MainContent({ currentTheme }) {
   const [selectedDish, setSelectedDish] = useState(null);
   const [contentLoaded, setContentLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const [lastSearch, setLastSearch] = useState('');
+
+  // 加載上次搜索的內容
+  useEffect(() => {
+    const savedLastSearch = localStorage.getItem('lastSearch');
+    if (savedLastSearch) {
+      setLastSearch(savedLastSearch);
+      setInputValue(savedLastSearch);
+    }
+  }, []);
+
+  // 保存最後搜索的內容
+  useEffect(() => {
+    localStorage.setItem('lastSearch', lastSearch);
+  }, [lastSearch]);
 
   const allOptions = useMemo(() => {
     const options = [];
@@ -41,6 +56,7 @@ function MainContent({ currentTheme }) {
     setIngredients(null);
     setSearchResults([]);
     setSelectedDish(null);
+    setLastSearch(inputValue);  // 保存最後搜索的內容
 
     startTransition(() => {
       setTimeout(() => {
