@@ -19,22 +19,22 @@ import KitchenIcon from '@mui/icons-material/Kitchen';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import MyFridge from './components/MyFridge';
 import ShoppingList from './components/ShoppingList';
+import BottomNav from './components/BottomNav';
+import Profile from './components/Profile';
 
 const filterOptions = createFilterOptions({
   limit: 5,
 });
 
-function MainContent() {
+function MainContent({ currentTheme }) {
   const { t, i18n } = useTranslation();
   const [dish, setDish] = useState(null);
   const [ingredients, setIngredients] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
-  const [currentTheme, setCurrentTheme] = useState(allThemes[0]);
   const [searchResults, setSearchResults] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [selectedDish, setSelectedDish] = useState(null);
-  const [currentThemeName, setCurrentThemeName] = useState('淺色主題');
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [contentLoaded, setContentLoaded] = useState(false);
@@ -89,14 +89,6 @@ function MainContent() {
     setIngredients(recipes[dishName]);
   };
 
-  const randomizeTheme = () => {
-    const randomIndex = Math.floor(Math.random() * allThemes.length);
-    const randomTheme = allThemes[randomIndex];
-    setCurrentTheme(randomTheme);
-    const themeNames = ['淺色主題', '色主題', '藍色主題', '綠色主題', '紫色主題', '深海主題', '沙漠日落主題', '森林主題'];
-    setCurrentThemeName(themeNames[randomIndex]);
-  };
-
   const handleKeyPress = (event) => {
     if (event.key === 'Enter' && inputValue.trim() !== '') {
       getIngredients();
@@ -123,14 +115,6 @@ function MainContent() {
           minHeight: '100vh',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', p: 2 }}>
-          <Typography variant="body2" sx={{ mr: 2 }}>
-            {currentThemeName}
-          </Typography>
-          <IconButton onClick={randomizeTheme} color="inherit">
-            <ShuffleIcon />
-          </IconButton>
-        </Box>
         <Container maxWidth="sm" sx={{ py: 4 }}>
           <Paper elevation={3} sx={{ p: 4, borderRadius: 2 }}>
             <Typography variant="h4" component="h1" gutterBottom align="left" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 2 }}>
@@ -270,15 +254,18 @@ function MainContent() {
 }
 
 function App() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const currentTheme = isDarkMode ? allThemes[1] : allThemes[0];
+  const [currentTheme, setCurrentTheme] = useState(allThemes[0]);
+  const [currentThemeName, setCurrentThemeName] = useState('淺色主題');
   const isMobile = useMediaQuery(currentTheme.breakpoints.down('sm'));
-  const [value, setValue] = useState(0);
   const [fridgeItems, setFridgeItems] = useState([]);
   const [shoppingList, setShoppingList] = useState([]);
 
   const addToFridge = (item) => {
     setFridgeItems(prev => [...prev, item]);
+  };
+
+  const removeFromFridge = (item) => {
+    setFridgeItems(prev => prev.filter(i => i !== item));
   };
 
   const removeFromShopping = (item) => {
@@ -289,14 +276,27 @@ function App() {
     setShoppingList(prev => [...prev, item]);
   };
 
+  const randomizeTheme = () => {
+    const randomIndex = Math.floor(Math.random() * allThemes.length);
+    const randomTheme = allThemes[randomIndex];
+    setCurrentTheme(randomTheme);
+    const themeNames = ['淺色主題', '深色主題', '藍色主題', '綠色主題', '紫色主題', '深海主題', '沙漠日落主題', '森林主題'];
+    setCurrentThemeName(themeNames[randomIndex]);
+  };
+
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
       <Router>
         <div style={{ paddingBottom: isMobile ? '56px' : '0' }}>
           <Routes>
-            <Route path="/" element={<MainContent />} />
-            <Route path="/fridge" element={<MyFridge fridgeItems={fridgeItems} />} />
+            <Route path="/" element={<MainContent currentTheme={currentTheme} />} />
+            <Route path="/fridge" element={
+              <MyFridge 
+                fridgeItems={fridgeItems} 
+                removeFromFridge={removeFromFridge}
+              />
+            } />
             <Route path="/shopping" element={
               <ShoppingList 
                 shoppingList={shoppingList} 
@@ -305,23 +305,15 @@ function App() {
                 addToShoppingList={addToShoppingList}
               />
             } />
+            <Route path="/profile" element={
+              <Profile 
+                currentThemeName={currentThemeName}
+                randomizeTheme={randomizeTheme}
+              />
+            } />
           </Routes>
         </div>
-        {isMobile && (
-          <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
-            <BottomNavigation
-              value={value}
-              onChange={(event, newValue) => {
-                setValue(newValue);
-              }}
-              showLabels
-            >
-              <BottomNavigationAction label="首頁" icon={<HomeIcon />} component={Link} to="/" />
-              <BottomNavigationAction label="我的冰箱" icon={<KitchenIcon />} component={Link} to="/fridge" />
-              <BottomNavigationAction label="採買清單" icon={<ShoppingCartIcon />} component={Link} to="/shopping" />
-            </BottomNavigation>
-          </Paper>
-        )}
+        {isMobile && <BottomNav />}
       </Router>
     </ThemeProvider>
   );
