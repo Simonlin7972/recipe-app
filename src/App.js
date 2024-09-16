@@ -10,12 +10,22 @@ import { IconButton } from '@mui/material';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import CustomButton from './components/CustomButton';
 import CustomInput from './components/CustomInput';
+import { useTranslation } from 'react-i18next';
+import './i18n';
+import { BrowserRouter as Router, Route, Routes, Link, useLocation } from 'react-router-dom';
+import { BottomNavigation, BottomNavigationAction } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import KitchenIcon from '@mui/icons-material/Kitchen';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import MyFridge from './components/MyFridge';
+import ShoppingList from './components/ShoppingList';
 
 const filterOptions = createFilterOptions({
   limit: 5,
 });
 
-function App() {
+function MainContent() {
+  const { t, i18n } = useTranslation();
   const [dish, setDish] = useState(null);
   const [ingredients, setIngredients] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -98,6 +108,10 @@ function App() {
       setContentLoaded(false);
     }
   }, [isSearching]);
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
   return (
     <ThemeProvider theme={currentTheme}>
@@ -251,6 +265,43 @@ function App() {
           </Paper>
         </Container>
       </Box>
+    </ThemeProvider>
+  );
+}
+
+function App() {
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const currentTheme = isDarkMode ? allThemes[1] : allThemes[0];
+  const isMobile = useMediaQuery(currentTheme.breakpoints.down('sm'));
+  const [value, setValue] = useState(0);
+
+  return (
+    <ThemeProvider theme={currentTheme}>
+      <CssBaseline />
+      <Router>
+        <div style={{ paddingBottom: isMobile ? '56px' : '0' }}>
+          <Routes>
+            <Route path="/" element={<MainContent />} />
+            <Route path="/fridge" element={<MyFridge />} />
+            <Route path="/shopping" element={<ShoppingList />} />
+          </Routes>
+        </div>
+        {isMobile && (
+          <Paper sx={{ position: 'fixed', bottom: 0, left: 0, right: 0 }} elevation={3}>
+            <BottomNavigation
+              value={value}
+              onChange={(event, newValue) => {
+                setValue(newValue);
+              }}
+              showLabels
+            >
+              <BottomNavigationAction label="首頁" icon={<HomeIcon />} component={Link} to="/" />
+              <BottomNavigationAction label="我的冰箱" icon={<KitchenIcon />} component={Link} to="/fridge" />
+              <BottomNavigationAction label="採買清單" icon={<ShoppingCartIcon />} component={Link} to="/shopping" />
+            </BottomNavigation>
+          </Paper>
+        )}
+      </Router>
     </ThemeProvider>
   );
 }
