@@ -274,6 +274,20 @@ function App() {
   const currentTheme = isDarkMode ? allThemes[1] : allThemes[0];
   const isMobile = useMediaQuery(currentTheme.breakpoints.down('sm'));
   const [value, setValue] = useState(0);
+  const [fridgeItems, setFridgeItems] = useState([]);
+  const [shoppingList, setShoppingList] = useState([]);
+
+  const addToFridge = (item) => {
+    setFridgeItems(prev => [...prev, item]);
+  };
+
+  const removeFromShopping = (item) => {
+    setShoppingList(prev => prev.filter(i => i !== item));
+  };
+
+  const addToShoppingList = (item) => {
+    setShoppingList(prev => [...prev, item]);
+  };
 
   return (
     <ThemeProvider theme={currentTheme}>
@@ -282,8 +296,15 @@ function App() {
         <div style={{ paddingBottom: isMobile ? '56px' : '0' }}>
           <Routes>
             <Route path="/" element={<MainContent />} />
-            <Route path="/fridge" element={<MyFridge />} />
-            <Route path="/shopping" element={<ShoppingList />} />
+            <Route path="/fridge" element={<MyFridge fridgeItems={fridgeItems} />} />
+            <Route path="/shopping" element={
+              <ShoppingList 
+                shoppingList={shoppingList} 
+                addToFridge={addToFridge} 
+                removeFromShopping={removeFromShopping}
+                addToShoppingList={addToShoppingList}
+              />
+            } />
           </Routes>
         </div>
         {isMobile && (
