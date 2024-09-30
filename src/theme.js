@@ -25,7 +25,7 @@ const sharedTheme = {
     MuiPaper: {
       styleOverrides: {
         root: {
-          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', // 柔和的陰影
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)', // 柔和的陰影 
           border: '1px solid rgba(0, 0, 0, 0.05)', // 淡淡的邊框
           borderRadius: 12,
         },
@@ -37,7 +37,7 @@ const sharedTheme = {
           boxShadow: 'none',
           borderRadius: 12,
           border: '1px solid',
-          borderColor: 'divider',
+          borderColor: '#e0e0e0',
         },
       },
     },

@@ -18,6 +18,7 @@ import ShoppingList from './components/ShoppingList';
 import BottomNav from './components/BottomNav';
 import Profile from './components/Profile';
 import MainContent from './components/MainContent';
+import RecipesPage from './components/RecipesPage'; // 新增這行
 
 function App() {
   const [currentTheme, setCurrentTheme] = useState(allThemes[0]);
@@ -84,6 +85,7 @@ function App() {
                 removeFromFridge={removeFromFridge}
               />
             } />
+            <Route path="/recipes" element={<RecipesPage />} /> {/* 新增這行 */}
             <Route path="/shopping" element={
               <ShoppingList 
                 shoppingList={shoppingList} 

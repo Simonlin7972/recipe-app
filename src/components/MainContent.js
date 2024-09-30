@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useTransition, useEffect } from 'react';
-import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Fade } from '@mui/material';
+import { Container, Typography, Box, CircularProgress, Paper, Divider, Grid, Skeleton, List, ListItem, ListItemText, Fade, Card, CardContent } from '@mui/material';
 import { createFilterOptions } from '@mui/material/Autocomplete';
 import CustomButton from './CustomButton';
 import CustomInput from './CustomInput';
@@ -56,7 +56,7 @@ function MainContent({ currentTheme }) {
     setIngredients(null);
     setSearchResults([]);
     setSelectedDish(null);
-    setLastSearch(inputValue);  // 保存最後搜索的內容
+    setLastSearch(inputValue);
 
     startTransition(() => {
       setTimeout(() => {
@@ -69,8 +69,9 @@ function MainContent({ currentTheme }) {
           if (results.length > 0) {
             if (results[0].type === 'dish') {
               setIngredients(recipes[results[0].name]);
+              setSelectedDish(results[0].name);
             } else {
-              const relatedDishes = results.map(result => result.dish).filter((value, index, self) => self.indexOf(value) === index);
+              const relatedDishes = [...new Set(results.map(result => result.dish))];
               setSearchResults(relatedDishes);
             }
           } else {
@@ -84,10 +85,8 @@ function MainContent({ currentTheme }) {
   };
 
   const handleDishClick = (dishName) => {
-    startTransition(() => {
-      setSelectedDish(recipes[dishName]);
-      setIngredients(recipes[dishName]);
-    });
+    setSelectedDish(dishName);
+    setIngredients(recipes[dishName]);
   };
 
   const handleKeyPress = (event) => {
@@ -95,6 +94,22 @@ function MainContent({ currentTheme }) {
       getIngredients();
     }
   };
+
+  const renderNutritionInfo = (nutrition) => (
+    <Box sx={{ mt: 2 }}>
+      <Typography variant="h6" gutterBottom>營養成分：</Typography>
+      <Grid container spacing={2}>
+        {Object.entries(nutrition).map(([key, value]) => (
+          <Grid item xs={6} key={key}>
+            <Paper elevation={2} sx={{ p: 1, textAlign: 'center' }}>
+              <Typography variant="body2">{key}</Typography>
+              <Typography variant="h6">{value}</Typography>
+            </Paper>
+          </Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
 
   return (
     <Container maxWidth="sm" sx={{ py: 4 }}>
@@ -135,7 +150,69 @@ function MainContent({ currentTheme }) {
             </CustomButton>
           </Grid>
         </Grid>
-        {/* ... 其餘的 JSX 保持不變 ... */}
+        
+        {isSearching && (
+          <Box sx={{ mt: 4 }}>
+            <Skeleton variant="text" height={40} />
+            <Skeleton variant="rectangular" height={100} sx={{ mt: 2 }} />
+          </Box>
+        )}
+
+        <Fade in={contentLoaded} timeout={500}>
+          <Box>
+            {error && (
+              <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>
+                {error}
+              </Typography>
+            )}
+            {searchResults.length > 0 && !selectedDish && (
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h6" gutterBottom>相關菜色：</Typography>
+                <List>
+                  {searchResults.map((dish, index) => (
+                    <ListItem key={index} button onClick={() => handleDishClick(dish)}>
+                      <ListItemText primary={dish} />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            )}
+            {selectedDish && ingredients && (
+              <Card sx={{ mt: 4 }}>
+                <CardContent>
+                  <Typography variant="h5" gutterBottom color="primary">{selectedDish}</Typography>
+                  <Typography variant="subtitle1" color="text.secondary" gutterBottom>
+                    預估熱量: {ingredients.預估熱量} 卡路里
+                  </Typography>
+                  <Divider sx={{ my: 2 }} />
+                  <Typography variant="h6" gutterBottom>食材：</Typography>
+                  <Grid container spacing={1}>
+                    {ingredients.食材.map((item, index) => (
+                      <Grid item xs={6} key={index}>
+                        <Paper elevation={1} sx={{ p: 1, textAlign: 'center' }}>
+                          <Typography variant="body2">{item.名稱}</Typography>
+                          <Typography variant="body1" fontWeight="bold">{item.份量}</Typography>
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>調味料：</Typography>
+                  <Grid container spacing={1}>
+                    {ingredients.調味料.map((item, index) => (
+                      <Grid item xs={6} key={index}>
+                        <Paper elevation={1} sx={{ p: 1, textAlign: 'center' }}>
+                          <Typography variant="body2">{item.名稱}</Typography>
+                          <Typography variant="body1" fontWeight="bold">{item.份量}</Typography>
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                  {renderNutritionInfo(ingredients.營養成分)}
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+        </Fade>
       </Paper>
     </Container>
   );
